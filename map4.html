@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    #chartdiv {
+      width: 50%;
+      height: 600px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/map.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/geodata/peruLow.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/themes/Responsive.js"></script>
+</head>
+
+<body>
+  <div id="chartdiv"></div>
+  <script>
+    am5.ready(function () {
+      // Create root element
+      var root = am5.Root.new("chartdiv");
+
+      // Set themes
+      root.setThemes([
+        am5themes_Animated.new(root),
+        am5themes_Responsive.new(root)
+      ]);
+
+      // Create the map chart
+      var chart = root.container.children.push(am5map.MapChart.new(root, {
+        panX: "none",
+        panY: "none",
+        projection: am5map.geoMercator(),
+        wheelY: "none"
+      }));
+
+      // Create main polygon series for Peru
+      var polygonSeries = chart.series.push(am5map.MapPolygonSeries.new(root, {
+        geoJSON: am5geodata_peruLow
+      }));
+
+      polygonSeries.mapPolygons.template.setAll({
+        tooltipText: "{name}",
+        fill: am5.color(0xE2E4E5),
+        stroke: am5.color(0x000000),
+        strokeWidth: 1
+      });
+
+      polygonSeries.mapPolygons.template.states.create("hover", {
+        fill: am5.color(0x000000) // Change to desired hover color
+      });
+
+      // Add cities with hover information
+      var pointSeries = chart.series.push(am5map.MapPointSeries.new(root, {}));
+
+      var cities = [
+        { 
+            title: "Tumbes", 
+            latitude: -3.5669, 
+            longitude: -80.4511,
+            title_project: "Proyecto: ",
+            title_objetivo: "Objetivo:  ", 
+            title_servicio: "Servicio: ",
+            title_presupuesto: "Presupuesto: ",
+            proyecto: "Drenaje Pluvial integral\nde la ciudad de Tumbes", 
+            objetivo:"Proteger la población\nde la ciudad de Tumbes",
+            servicio:"Simulación hidráulica\nurbano y calidad del agua 1D y 2D",
+            presupuesto:"580so" 
+        },
+        { 
+            title: "Trujillo", 
+            latitude: -8.1150,
+            longitude: -79.0299,
+            title_project: "Proyecto: ",
+            // title_objetivo: "Objetivo:  ", 
+            // title_servicio: "Servicio: ", 
+            proyecto: "Entrega de las defensas\nribereñas río Chicama y Virú ", 
+            //objetivo:"Proteger las unidades productoras de la cuenca del río Chicama y Virú",
+            //servicio:"Simulación hidráulica urbano y calidad del agua 1D y 2D"  
+        },
+        { 
+            title: "Huaraz", 
+            latitude: -9.5271, 
+            longitude: -77.5280,
+            title_project: "Proyecto: ",
+            title_objetivo: "Objetivo:  ", 
+            title_servicio: "Servicio: ",  
+            proyecto: "Drenaje Pluvial integral de la ciudad de Tumbes", 
+            objetivo:"Proteger la población de la ciudad de Tumbes",
+            servicio:"Simulación hidráulica urbano y calidad del agua 1D y 2D" 
+        },
+    ];
+
+      cities.forEach(function (city) {
+        pointSeries.data.push({
+          geometry: { type: "Point", coordinates: [city.longitude, city.latitude] },
+          title: city.title,
+          title_project: city.title_project,
+          title_objetivo: city.title_objetivo,
+          title_servicio: city.title_servicio,
+          title_presupuesto: city.title_presupuesto,
+          proyecto: city.proyecto,
+          objetivo: city.objetivo,
+          servicio: city.servicio,
+          presupuesto: city.presupuesto
+
+        });
+      });
+
+    //Responsive widget
+    var tooltipTemplate = am5.Tooltip.new(root, {
+            labelText: "{title}\n\n{proyecto}\n{objetivo}\n{servicio}\n{presupuesto}"
+    });
+
+    pointSeries.bullets.push(function (root, series, dataItem) {
+        return am5.Bullet.new(root, {
+          sprite: am5.Circle.new(root, {
+            radius: 10,
+            tooltipText: "[fontSize:30px bold]{title}[/]\n[bold]{title_project}[/][fontSize:16px]{proyecto}[/]\n[bold]{title_objetivo}[/][fontSize:16px]{objetivo}[/]\n[bold]{title_servicio}[/][fontSize:16px]{servicio}[/]\n{title_presupuesto}{presupuesto}",
+            fill: am5.color(0x00C85A)
+          })
+        });
+      });
+
+      // Add responsive rules for tooltips
+      var responsive = am5themes_Responsive.newEmpty(root);
+
+      responsive.addRule({
+        relevant: am5themes_Responsive.isWidthLessThan(600),
+        apply: function (target) {
+          if (target instanceof am5.Tooltip) {
+            target.set("labelText", "{title}\n\n{proyecto}");
+          }
+        }
+      });
+
+      root.setThemes([responsive]);
+
+      // Make stuff animate on load
+      chart.appear(1000, 100);
+    }); // end am5.ready()
+  </script>
+</body>
+
+</html>
